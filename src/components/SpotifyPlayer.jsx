@@ -23,15 +23,23 @@ function SpotifyPlayer({ playlistUri }) {
 
   useEffect(() => {
     const hash = window.location.hash;
-    let tokenFromUrl = window.localStorage.getItem('token');
-
-    if (!tokenFromUrl && hash) {
-      tokenFromUrl = hash.substring(1).split('&').find(el => el.startsWith('access_token')).split('=')[1];
-      window.location.hash = '';
-      window.localStorage.setItem('token', tokenFromUrl);
+    let token = window.localStorage.getItem("token");
+  
+    if (!token && hash) {
+      const accessTokenFragment = hash
+        .substring(1)
+        .split("&")
+        .find(item => item.startsWith("access_token"));
+  
+      if (accessTokenFragment) {
+        token = accessTokenFragment.split("=")[1];
+        window.localStorage.setItem("token", token);
+      }
+  
+      window.location.hash = "";
     }
-
-    setToken(tokenFromUrl);
+  
+    setToken(token);
   }, []);
 
   useEffect(() => {
