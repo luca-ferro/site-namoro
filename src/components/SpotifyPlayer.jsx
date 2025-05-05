@@ -13,9 +13,9 @@ const SpotifyPlayer = () => {
   
   // Replace with your Spotify Client ID
   const CLIENT_ID = 'e6d3a77593e3437680196c0d94801697';
-  const REDIRECT_URI = window.location.origin;
-  const SCOPE = 'streaming user-read-email user-read-private user-library-read user-library-modify user-read-playback-state user-modify-playback-state';
-  const AUTH_URL = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=token&redirect_uri=${REDIRECT_URI}&scope=${SCOPE}`;
+  const REDIRECT_URI = encodeURIComponent('https://site-namoro-red.vercel.app/callback');
+  const SCOPE = encodeURIComponent('streaming user-read-email user-read-private');
+  const AUTH_URL = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=token&redirect_uri=${REDIRECT_URI}&scope=${SCOPE}&show_dialog=true`;
 
   // Check for access token in URL after redirect
   useEffect(() => {
@@ -111,11 +111,7 @@ const SpotifyPlayer = () => {
       })
     });
   };
-
-  const handleLogin = () => {
-    window.location.href = AUTH_URL;
-  };
-
+  
   const handleLogout = () => {
     window.localStorage.removeItem('spotify_token');
     setIsLoggedIn(false);
@@ -166,6 +162,53 @@ const SpotifyPlayer = () => {
       <div className="spotify-login">
         <h2>Spotify Player</h2>
         <button onClick={handleLogin}>Login with Spotify</button>
+      </div>
+    );
+  }
+
+  useEffect(() => {
+    // Only process the callback if we're on the callback route
+    if (window.location.pathname.includes('/callback')) {
+      handleCallback();
+    }
+  }, []);
+
+  const handleCallback = () => {
+    const hash = window.location.hash.substring(1);
+    const params = new URLSearchParams(hash);
+
+    if (params.get('access_token')) {
+      // Successful authentication
+      const token = params.get('access_token');
+      window.localStorage.setItem('spotify_token', token);
+      window.location.href = '/'; // Redirect to home after auth
+    } else if (params.get('error')) {
+      // Handle errors
+      setError(`Spotify authentication failed: ${params.get('error')}`);
+      console.error('Auth error details:', {
+        error: params.get('error'),
+        error_description: params.get('error_description')
+      });
+    }
+  };
+
+  const handleLogin = () => {
+    // Reset any previous errors
+    setError(null);
+    // Redirect to Spotify auth
+    window.location.href = AUTH_URL;
+  };
+
+  if (error) {
+    return (
+      <div className="error-container">
+        <h2>Authentication Error</h2>
+        <p>{error}</p>
+        <button onClick={handleLogin}>Try Again</button>
+        <div className="debug-info">
+          <p>Current URL: {window.location.href}</p>
+          <p>Expected Redirect URI: https://site-namoro-red.vercel.app/callback</p>
+        </div>
       </div>
     );
   }
