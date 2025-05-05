@@ -13,7 +13,7 @@ const SpotifyPlayer = () => {
   
   // Replace with your Spotify Client ID
   const CLIENT_ID = 'e6d3a77593e3437680196c0d94801697';
-  const REDIRECT_URI = window.location.origin;
+  const REDIRECT_URI = "http://192.168.15.210:5173/";
   const SCOPE = 'streaming user-read-email user-read-private user-library-read user-library-modify user-read-playback-state user-modify-playback-state';
   const AUTH_URL = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=token&redirect_uri=${REDIRECT_URI}&scope=${SCOPE}`;
 
