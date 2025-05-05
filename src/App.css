@@ -1,0 +1,133 @@
+#root {
+  margin: 0 auto;
+  text-align: center;
+}
+
+.clock {
+  display: flex;
+  flex-direction: column;
+  font-size: 22px;
+  z-index: 2;
+  margin-top: -20px;
+}
+
+.clock span:first-child {
+  font-size: 45px;
+  margin-bottom: -20px;
+  font-weight: bold;
+}
+
+.full-clock {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.photo-carrousel {
+  width: 100vw;
+  height: 50vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.photo-carrousel::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 30%;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, #9A208C 100%);
+  pointer-events: none;
+}
+
+.photo-carrousel img {
+  width: 100%;
+  height: 50dvh;
+  object-fit: cover;
+}
+
+.add-photo {
+  width: 50px;
+  height: 50px;
+  
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  background-color: #E11299;
+  border-radius: 50%;
+
+  img {
+    filter: invert(100%);
+    height: 30px;
+  }
+}
+
+.loading {
+  width: 100dvw;
+  height: 100dvh;
+  background-color: #FFEAEA;
+  color: #9A208C;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.5s ease, visibility 0s 0.5s;
+  z-index: 200;
+}
+
+.loading.fade-out {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.espaco-texto {
+  color: #3a1736;
+  background-color: #FFEAEA;
+  padding: 0 10px;
+}
+
+.addButton {
+  margin-top: 20px;
+  width: 91%;
+  background-color: #3a1736;
+  color: #FFEAEA;
+  border-radius: 50px;
+  font-size: 20px;
+}
+
+footer {
+  margin-top: 20px;
+  background-color: #3a1736;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-size: 21px;
+    img {
+      filter: invert(100%);
+    }
+  }
+}
+
+.footer-notes {
+  margin: 20px 10px;
+}
