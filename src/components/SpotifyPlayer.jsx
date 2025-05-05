@@ -66,7 +66,7 @@ function SpotifyPlayer({ playlistUri }) {
         if (success) setPlayer(newPlayer);
       });
     }
-  }, [token, playlistUri]);
+  }, [token, player]);
 
   const togglePlay = async () => {
     if (!player) return;
