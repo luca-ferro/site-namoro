@@ -1,143 +1,105 @@
-.spotify-player {
-    max-width: 400px;
-    margin: 0 auto;
-    padding: 20px;
-    background-color: #181818;
-    color: white;
-    border-radius: 10px;
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  }
-  
-  .player-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  
-  .track-info {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  
-  .album-art {
-    width: 100px;
-    height: 100px;
-    margin-right: 15px;
-    border-radius: 5px;
-  }
-  
-  .track-details h3 {
-    margin: 0 0 5px 0;
-    font-size: 18px;
-  }
-  
-  .track-details p {
-    margin: 5px 0;
-    font-size: 14px;
-    color: #b3b3b3;
-  }
-  
-  .player-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-  }
-  
-  .progress-container {
-    width: 100%;
-  }
-  
-  .progress-bar {
-    width: 100%;
-    height: 4px;
-    -webkit-appearance: none;
-    appearance: none;
-    background: #535353;
-    border-radius: 2px;
-    outline: none;
-  }
-  
-  .progress-bar::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 12px;
-    height: 12px;
-    background: white;
-    border-radius: 50%;
-    cursor: pointer;
-  }
-  
-  .time-display {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-    color: #b3b3b3;
-    margin-top: 5px;
-  }
-  
-  .control-buttons {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 30px;
-  }
-  
-  .control-button, .play-button {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 20px;
-    cursor: pointer;
-  }
-  
-  .play-button {
-    font-size: 30px;
-  }
-  
-  .volume-control {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  
-  .volume-slider {
-    width: 100px;
-    height: 4px;
-    -webkit-appearance: none;
-    appearance: none;
-    background: #535353;
-    border-radius: 2px;
-    outline: none;
-  }
-  
-  .volume-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 12px;
-    height: 12px;
-    background: white;
-    border-radius: 50%;
-    cursor: pointer;
-  }
-  
-  .spotify-login {
-    text-align: center;
-    padding: 20px;
-  }
-  
-  .spotify-login button {
-    background-color: #1DB954;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 20px;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 16px;
-  }
-  
-  .spotify-login button:hover {
-    background-color: #1ed760;
-  }
+.youtube-music-player {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #181818;
+  color: white;
+  border-radius: 10px;
+  font-family: 'Roboto', sans-serif;
+}
+
+.player-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.shuffle-button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.track-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.album-art {
+  width: 100px;
+  height: 100px;
+  margin-right: 15px;
+  border-radius: 5px;
+}
+
+.track-details h3 {
+  margin: 0 0 5px 0;
+  font-size: 18px;
+}
+
+.track-details p {
+  margin: 0;
+  color: #aaa;
+  font-size: 14px;
+}
+
+.player-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.control-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+}
+
+.control-buttons button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.control-buttons button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.volume-slider {
+  width: 100px;
+}
+
+.loading, .welcome-message {
+  text-align: center;
+  padding: 20px;
+  color: #aaa;
+}
+
+.error-container {
+  text-align: center;
+  padding: 20px;
+  color: #ff4d4d;
+}
+
+.error-container button {
+  background: #ff4d4d;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  margin-top: 10px;
+  cursor: pointer;
+}

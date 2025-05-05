@@ -4,180 +4,159 @@ import './SpotifyPlayer.css';
 const SpotifyPlayer = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [player, setPlayer] = useState(null);
-  const [deviceId, setDeviceId] = useState(null);
   const [currentTrack, setCurrentTrack] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(50);
   const [error, setError] = useState(null);
+  const [playlist, setPlaylist] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Configuration - Update these with your actual values
-  const CLIENT_ID = 'e6d3a77593e3437680196c0d94801697';
-  const REDIRECT_URI = encodeURIComponent(window.location.origin);
-  const SCOPE = encodeURIComponent('streaming user-read-email user-read-private');
-  const AUTH_URL = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=token&redirect_uri=${REDIRECT_URI}&scope=${SCOPE}&show_dialog=true`;
+  // YouTube API configuration
+  const API_KEY = 'AIzaSyCMF2H6sNuTzmUVmujmyrz3n6mnrjD9fHc'; // Replace with your actual API key
+  const CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID'; // For OAuth if needed
+  const DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest"];
+  const SCOPES = 'https://www.googleapis.com/auth/youtube';
 
-  // Check for token in localStorage on initial load
+  // Initialize YouTube IFrame API
   useEffect(() => {
-    const token = localStorage.getItem('spotify_token');
-    if (token) {
-      setIsLoggedIn(true);
-      initializePlayer(token);
-    }
+    if (!isLoggedIn) return;
 
-    // Handle the callback if we're coming back from Spotify auth
-    const hash = window.location.hash;
-    if (hash) {
-      handleAuthCallback(hash);
-    }
-  }, []);
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-  const handleAuthCallback = (hash) => {
-    try {
-      const params = new URLSearchParams(hash.substring(1));
-      const token = params.get('access_token');
-      const error = params.get('error');
-
-      if (error) {
-        setError(`Spotify authentication failed: ${error}`);
-        return;
-      }
-
-      if (token) {
-        localStorage.setItem('spotify_token', token);
-        setIsLoggedIn(true);
-        initializePlayer(token);
-        // Clear the hash from URL without reloading
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-    } catch (err) {
-      setError('Failed to process authentication');
-      console.error(err);
-    }
-  };
-
-  const initializePlayer = (token) => {
-    // Check if SDK is already loaded
-    if (window.Spotify) {
-      createPlayer(token);
-      return;
-    }
-
-    // Load the Spotify Web Playback SDK
-    const script = document.createElement('script');
-    script.src = 'https://sdk.scdn.co/spotify-player.js';
-    script.async = true;
-    
-    script.onerror = () => {
-      setError('Failed to load Spotify player SDK');
-    };
-
-    document.body.appendChild(script);
-
-    window.onSpotifyWebPlaybackSDKReady = () => {
-      createPlayer(token);
-    };
-  };
-
-  const createPlayer = (token) => {
-    try {
-      const player = new window.Spotify.Player({
-        name: 'React Spotify Player',
-        getOAuthToken: cb => { cb(token); },
-        volume: volume / 100
-      });
-
-      // Set up event listeners
-      player.addListener('ready', ({ device_id }) => {
-        setDeviceId(device_id);
-        transferPlayback(device_id, token);
-      });
-
-      player.addListener('not_ready', ({ device_id }) => {
-        console.log('Device disconnected', device_id);
-      });
-
-      player.addListener('player_state_changed', state => {
-        if (!state) return;
-        setCurrentTrack(state.track_window.current_track);
-        setIsPlaying(!state.paused);
-        setProgress(state.position / state.duration * 100);
-      });
-
-      player.addListener('initialization_error', ({ message }) => {
-        setError(`Player init error: ${message}`);
-      });
-
-      player.addListener('authentication_error', ({ message }) => {
-        setError(`Auth error: ${message}`);
-        handleLogout();
-      });
-
-      player.addListener('account_error', ({ message }) => {
-        setError(`Account error: ${message}`);
-      });
-
-      player.connect().then(success => {
-        if (!success) {
-          setError('Failed to connect to Spotify player');
+    window.onYouTubeIframeAPIReady = () => {
+      const ytPlayer = new window.YT.Player('youtube-player', {
+        height: '0', // Hidden player
+        width: '0',
+        events: {
+          'onReady': onPlayerReady,
+          'onStateChange': onPlayerStateChange,
+          'onError': onPlayerError
         }
       });
+      console.log("ytplayer: ", ytPlayer)
+      setPlayer(ytPlayer);
+    };
+
+    return () => {
+      if (window.YT) {
+        delete window.YT;
+        delete window.onYouTubeIframeAPIReady;
+      }
+    };
+  }, [isLoggedIn]);
+
+  // Handle player ready event
+  const onPlayerReady = (event) => {
+    console.log('YouTube player ready');
+    event.target.setVolume(volume);
+  };
+
+  // Handle player state changes
+  const onPlayerStateChange = (event) => {
+    switch (event.data) {
+      case window.YT.PlayerState.PLAYING:
+        setIsPlaying(true);
+        break;
+      case window.YT.PlayerState.PAUSED:
+        setIsPlaying(false);
+        break;
+      case window.YT.PlayerState.ENDED:
+        // Handle track ended
+        break;
+      default:
+        break;
+    }
+  };
+
+  // Handle player errors
+  const onPlayerError = (event) => {
+    setError(`YouTube Player Error: ${event.data}`);
+  };
+
+  // Search for music
+  const searchMusic = async (query) => {
+    try {
+      const response = await fetch(
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=${encodeURIComponent(query)}&type=video&key=${API_KEY}`
+      );
+      const data = await response.json();
+      setPlaylist(data.items);
     } catch (err) {
-      setError('Failed to create player');
+      setError('Failed to search for music');
       console.error(err);
     }
   };
 
-  const transferPlayback = (deviceId, token) => {
-    fetch('https://api.spotify.com/v1/me/player', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        device_ids: [deviceId],
-        play: false
-      })
-    }).catch(err => console.error('Playback transfer failed:', err));
-  };
-
-  const handleLogin = () => {
-    setError(null);
-    window.location.href = AUTH_URL;
-  };
-
-  const handleLogout = () => {
+  // Play a specific track
+  const playTrack = (videoId) => {
+    console.log("PLAYTRACK")
     if (player) {
-      player.disconnect().catch(console.error);
+      player.loadVideoById(videoId);
+      setIsPlaying(true);
+      console.log("PLAYTRACK2")
+      
+      // Get video details for display
+      fetch(
+        `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${API_KEY}`
+      )
+        .then(res => res.json())
+        .then(data => {
+          if (data.items && data.items.length > 0) {
+            setCurrentTrack({
+              id: videoId,
+              title: data.items[0].snippet.title,
+              artist: data.items[0].snippet.channelTitle,
+              thumbnail: data.items[0].snippet.thumbnails.default.url
+            });
+          }
+        });
     }
-    localStorage.removeItem('spotify_token');
-    setIsLoggedIn(false);
-    setPlayer(null);
-    setCurrentTrack(null);
   };
 
   // Player control functions
-  const togglePlay = () => player && (isPlaying ? player.pause() : player.resume());
-  const skipNext = () => player && player.nextTrack();
-  const skipPrevious = () => player && player.previousTrack();
+  const togglePlay = () => {
+    if (player) {
+      if (isPlaying) {
+        player.pauseVideo();
+      } else {
+        player.playVideo();
+      }
+    }
+  };
+
+  const skipNext = () => {
+    // Implement playlist functionality
+    console.log('Skip next');
+  };
+
+  const skipPrevious = () => {
+    // Implement playlist functionality
+    console.log('Skip previous');
+  };
+
   const handleVolumeChange = (e) => {
     const newVolume = e.target.value;
     setVolume(newVolume);
-    player && player.setVolume(newVolume / 100);
-  };
-  const seekTrack = (e) => {
-    const newProgress = e.target.value;
-    setProgress(newProgress);
-    if (currentTrack && player) {
-      player.seek((newProgress / 100) * currentTrack.duration_ms);
+    if (player) {
+      player.setVolume(newVolume);
     }
   };
-  const formatTime = (ms) => {
-    const seconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      searchMusic(searchQuery);
+    }
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
   // Render based on state
@@ -186,58 +165,40 @@ const SpotifyPlayer = () => {
       <div className="error-container">
         <h2>Error</h2>
         <p>{error}</p>
-        {error.includes('authentication') ? (
-          <button onClick={handleLogin}>Reconnect to Spotify</button>
-        ) : (
-          <button onClick={() => setError(null)}>Try Again</button>
-        )}
-      </div>
-    );
-  }
-
-  if (!isLoggedIn) {
-    return (
-      <div className="login-container">
-        <h2>Spotify Player</h2>
-        <button onClick={handleLogin}>Login with Spotify</button>
+        <button onClick={() => setError(null)}>Try Again</button>
       </div>
     );
   }
 
   return (
-    <div className="spotify-player">
+    <div className="youtube-music-player">
       <div className="player-header">
-        <h2>Now Playing</h2>
-        <button onClick={handleLogout}>Logout</button>
+        <h2>YouTube Music Player</h2>
       </div>
-      
+
+      <div className="search-container">
+        <form onSubmit={handleSearch}>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search for music..."
+          />
+          <button type="submit">Search</button>
+        </form>
+      </div>
+
       {currentTrack ? (
         <>
           <div className="track-info">
-            <img src={currentTrack.album.images[0].url} alt={currentTrack.name} className="album-art" />
+            <img src={currentTrack.thumbnail} alt={currentTrack.title} className="album-art" />
             <div className="track-details">
-              <h3>{currentTrack.name}</h3>
-              <p>{currentTrack.artists.map(artist => artist.name).join(', ')}</p>
-              <p>{currentTrack.album.name}</p>
+              <h3>{currentTrack.title}</h3>
+              <p>{currentTrack.artist}</p>
             </div>
           </div>
 
           <div className="player-controls">
-            <div className="progress-container">
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={progress}
-                onChange={seekTrack}
-                className="progress-bar"
-              />
-              <div className="time-display">
-                <span>{formatTime((progress / 100) * currentTrack.duration_ms)}</span>
-                <span>{formatTime(currentTrack.duration_ms)}</span>
-              </div>
-            </div>
-
             <div className="control-buttons">
               <button onClick={skipPrevious} disabled={!player}>⏮</button>
               <button onClick={togglePlay} disabled={!player}>
@@ -260,8 +221,30 @@ const SpotifyPlayer = () => {
           </div>
         </>
       ) : (
-        <div className="loading">Connecting to Spotify...</div>
+        <div className="welcome-message">
+          <p>Search for music to start playing</p>
+        </div>
       )}
+
+      {playlist.length > 0 && (
+        <div className="playlist-container">
+          <h3>Search Results</h3>
+          <ul className="playlist">
+            {playlist.map((item) => (
+              <li key={item.id.videoId} onClick={() => playTrack(item.id.videoId)}>
+                <img src={item.snippet.thumbnails.default.url} alt={item.snippet.title} />
+                <div>
+                  <h4>{item.snippet.title}</h4>
+                  <p>{item.snippet.channelTitle}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Hidden YouTube player */}
+      <div id="youtube-player"></div>
     </div>
   );
 };

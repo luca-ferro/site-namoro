@@ -193,7 +193,6 @@ function App() {
           >
             + Adicionar nova história
           </button>
-          <SpotifyPlayer />
           <footer>
             <div className='footer-notes'>
               <a href="https://www.instagram.com/detimermane_/" style={{ color: "white" }}>
