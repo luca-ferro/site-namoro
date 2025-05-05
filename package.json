@@ -5,10 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm install --legacy-peer-deps && vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "vercel-build": "npm install --legacy-peer-deps && vercel build"
+    "preview": "vite preview"
   },
   "dependencies": {
     "firebase": "^11.6.0",
