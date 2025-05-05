@@ -58,6 +58,11 @@ const SpotifyPlayer = () => {
     handleAuthentication();
   }, []);
 
+  const handleLogin = () => {
+    setError(null);
+    window.location.href = AUTH_URL;
+  };
+
   const initializePlayer = (token) => {
     const script = document.createElement('script');
     script.src = 'https://sdk.scdn.co/spotify-player.js';
@@ -111,7 +116,7 @@ const SpotifyPlayer = () => {
       })
     });
   };
-  
+
   const handleLogout = () => {
     window.localStorage.removeItem('spotify_token');
     setIsLoggedIn(false);
@@ -190,13 +195,6 @@ const SpotifyPlayer = () => {
         error_description: params.get('error_description')
       });
     }
-  };
-
-  const handleLogin = () => {
-    // Reset any previous errors
-    setError(null);
-    // Redirect to Spotify auth
-    window.location.href = AUTH_URL;
   };
 
   if (error) {
