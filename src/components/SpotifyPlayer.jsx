@@ -19,17 +19,43 @@ const SpotifyPlayer = () => {
 
   // Check for access token in URL after redirect
   useEffect(() => {
-    const hash = window.location.hash;
-    if (hash) {
-      const token = hash.substring(1).split('&').find(elem => elem.startsWith('access_token')).split('=')[1];
-      window.location.hash = '';
-      window.localStorage.setItem('spotify_token', token);
-      setIsLoggedIn(true);
-      initializePlayer(token);
-    } else if (window.localStorage.getItem('spotify_token')) {
-      setIsLoggedIn(true);
-      initializePlayer(window.localStorage.getItem('spotify_token'));
-    }
+    const handleAuthentication = () => {
+      const hash = window.location.hash;
+      
+      // Check if we have a hash fragment with auth data
+      if (hash) {
+        try {
+          // Remove the # symbol and parse the parameters
+          const params = new URLSearchParams(hash.substring(1));
+          
+          // Get the access token
+          const token = params.get('access_token');
+          
+          if (!token) {
+            throw new Error('No access token found in URL');
+          }
+          
+          // Clear the hash from URL
+          window.history.replaceState({}, document.title, window.location.pathname);
+          
+          // Store the token and initialize player
+          window.localStorage.setItem('spotify_token', token);
+          setIsLoggedIn(true);
+          initializePlayer(token);
+        } catch (error) {
+          console.error('Authentication error:', error);
+          // Handle error state if needed
+        }
+      } 
+      // Check for existing token in localStorage
+      else if (window.localStorage.getItem('spotify_token')) {
+        const token = window.localStorage.getItem('spotify_token');
+        setIsLoggedIn(true);
+        initializePlayer(token);
+      }
+    };
+  
+    handleAuthentication();
   }, []);
 
   const initializePlayer = (token) => {
