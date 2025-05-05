@@ -9,6 +9,7 @@ import 'slick-carousel/slick/slick-theme.css';
 
 import AddNewPhoto from './popups/AddNewPhoto';
 import Post from './components/Post';
+import SpotifyPlayer from './components/SpotifyPlayer';
 
 import { ThreeDots } from 'react-loader-spinner';
 
@@ -191,6 +192,7 @@ function App() {
           >
             + Adicionar nova história
           </button>
+          <SpotifyPlayer playlistUri="spotify:playlist:YOUR_PLAYLIST_URI_HERE" />
           <footer>
             <div className='footer-notes'>
               <a href="https://www.instagram.com/detimermane_/" style={{ color: "white" }}>
