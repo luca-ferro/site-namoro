@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 
 const CLIENT_ID = 'e6d3a77593e3437680196c0d94801697';
 const REDIRECT_URI = 'https://site-namoro-red.vercel.app/';
-const AUTH_ENDPOINT = 'https://accounts.spotify.com/authorize';
+const AUTH_ENDPOINT = 'https://accounts.spotify.com/authorize'; // Endpoint de autorização CORRETO
 const RESPONSE_TYPE = 'token';
 const SCOPES = [
   'streaming',
@@ -24,21 +24,21 @@ function SpotifyPlayer({ playlistUri }) {
   useEffect(() => {
     const hash = window.location.hash;
     let token = window.localStorage.getItem("token");
-  
+
     if (!token && hash) {
       const accessTokenFragment = hash
         .substring(1)
         .split("&")
         .find(item => item.startsWith("access_token"));
-  
+
       if (accessTokenFragment) {
         token = accessTokenFragment.split("=")[1];
         window.localStorage.setItem("token", token);
       }
-  
+
       window.location.hash = "";
     }
-  
+
     setToken(token);
   }, []);
 
@@ -53,14 +53,20 @@ function SpotifyPlayer({ playlistUri }) {
       newPlayer.addListener('ready', ({ device_id }) => {
         console.log('Ready with Device ID', device_id);
 
-        fetch(`https://api.spotify.com/v1/me/player/play?device_id=${device_id}`, {
+        // Endpoint correto para iniciar a reprodução em um dispositivo
+        fetch(`https://api.spotify.com/v1/me/player`, {
           method: 'PUT',
-          body: JSON.stringify({ context_uri: playlistUri, shuffle: true }),
+          body: JSON.stringify({
+            device_ids: [device_id],
+            context_uri: playlistUri,
+            play: true, // Para iniciar a reprodução assim que o dispositivo estiver pronto
+            shuffle_state: true, // Para ativar o modo aleatório
+          }),
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-        });
+        }).catch(error => console.error("Erro ao iniciar a reprodução:", error));
       });
 
       newPlayer.addListener('player_state_changed', state => {
@@ -72,27 +78,20 @@ function SpotifyPlayer({ playlistUri }) {
 
       newPlayer.connect().then(success => {
         if (success) setPlayer(newPlayer);
-      });
+      }).catch(error => console.error("Erro ao conectar o player:", error));
     }
-  }, [token, player]);
+  }, [token, player, playlistUri]); // Adicione playlistUri como dependência
 
   const togglePlay = async () => {
     if (!player) return;
-    const state = await player.getCurrentState();
-    if (!state) return;
-
-    if (state.paused) {
-      player.resume();
-    } else {
-      player.pause();
-    }
+    player.togglePlay().catch(error => console.error("Erro ao alternar a reprodução:", error));
   };
 
-  const nextTrack = () => player?.nextTrack();
-  const prevTrack = () => player?.previousTrack();
+  const nextTrack = () => player?.nextTrack().catch(error => console.error("Erro ao ir para a próxima faixa:", error));
+  const prevTrack = () => player?.previousTrack().catch(error => console.error("Erro ao ir para a faixa anterior:", error));
 
   const seek = ms => {
-    if (player) player.seek(ms);
+    if (player) player.seek(ms).catch(error => console.error("Erro ao buscar:", error));
   };
 
   const formatTime = ms => {
@@ -105,7 +104,7 @@ function SpotifyPlayer({ playlistUri }) {
     <div className="spotify-player">
       {!token ? (
         <a
-          href={`${AUTH_ENDPOINT}?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=${RESPONSE_TYPE}&scope=${SCOPES}`}
+          href={`${AUTH_ENDPOINT}?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=${RESPONSE_TYPE}&scope=${SCOPES}`}
         >
           Login to Spotify
         </a>
