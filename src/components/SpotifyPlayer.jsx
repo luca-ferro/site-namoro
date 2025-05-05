@@ -1,204 +1,214 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
+import './SpotifyPlayer.css'; // Optional styling
 
 const SpotifyPlayer = () => {
-  // Spotify app credentials and config (replace with your actual client ID)
-  const CLIENT_ID = 'e6d3a77593e3437680196c0d94801697';
-  const REDIRECT_URI = 'https://site-namoro-red.vercel.app/'; // must match Spotify app settings:contentReference[oaicite:13]{index=13}
-  const PLAYLIST_URI = 'spotify:playlist:6XtGSQjXWpyBK5WCM2WKat';
-  // Required scopes for playback (Web Playback SDK requires 'streaming'):contentReference[oaicite:14]{index=14}
-  const SCOPES = 'streaming user-read-playback-state user-modify-playback-state';
-
-  // React state hooks
-  const [token, setToken] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [player, setPlayer] = useState(null);
   const [deviceId, setDeviceId] = useState(null);
-  const [isPaused, setIsPaused] = useState(true);
-  const [track, setTrack] = useState({ name: '', artist: '', albumArt: '' });
-  const [position, setPosition] = useState(0);
-  const [duration, setDuration] = useState(0);
+  const [currentTrack, setCurrentTrack] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [volume, setVolume] = useState(50);
+  const [playlist, setPlaylist] = useState([]);
+  
+  // Replace with your Spotify Client ID
+  const CLIENT_ID = 'e6d3a77593e3437680196c0d94801697';
+  const REDIRECT_URI = window.location.origin;
+  const SCOPE = 'streaming user-read-email user-read-private user-library-read user-library-modify user-read-playback-state user-modify-playback-state';
+  const AUTH_URL = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=token&redirect_uri=${REDIRECT_URI}&scope=${SCOPE}`;
 
-  // Parse the URL hash for the access token (Implicit Grant Flow):contentReference[oaicite:15]{index=15}
+  // Check for access token in URL after redirect
   useEffect(() => {
     const hash = window.location.hash;
     if (hash) {
-      const params = new URLSearchParams(hash.substring(1));
-      const _token = params.get('access_token');
-      if (_token) {
-        window.history.pushState({}, null, '/'); // remove hash from URL
-        localStorage.setItem('spotify_access_token', _token);
-        setToken(_token);
-      }
-    } else {
-      // Try to load token from localStorage if page reloaded
-      const savedToken = localStorage.getItem('spotify_access_token');
-      if (savedToken) {
-        setToken(savedToken);
-      }
+      const token = hash.substring(1).split('&').find(elem => elem.startsWith('access_token')).split('=')[1];
+      window.location.hash = '';
+      window.localStorage.setItem('spotify_token', token);
+      setIsLoggedIn(true);
+      initializePlayer(token);
+    } else if (window.localStorage.getItem('spotify_token')) {
+      setIsLoggedIn(true);
+      initializePlayer(window.localStorage.getItem('spotify_token'));
     }
   }, []);
 
-  // Redirect to Spotify Accounts for login
+  const initializePlayer = (token) => {
+    const script = document.createElement('script');
+    script.src = 'https://sdk.scdn.co/spotify-player.js';
+    script.async = true;
+    document.body.appendChild(script);
+
+    window.onSpotifyWebPlaybackSDKReady = () => {
+      const player = new window.Spotify.Player({
+        name: 'React Spotify Player',
+        getOAuthToken: cb => { cb(token); },
+        volume: volume / 100
+      });
+
+      player.addListener('ready', ({ device_id }) => {
+        console.log('Ready with Device ID', device_id);
+        setDeviceId(device_id);
+        transferPlayback(device_id, token);
+      });
+
+      player.addListener('not_ready', ({ device_id }) => {
+        console.log('Device ID has gone offline', device_id);
+      });
+
+      player.addListener('player_state_changed', state => {
+        if (!state) return;
+        
+        setCurrentTrack(state.track_window.current_track);
+        setIsPlaying(!state.paused);
+        setProgress(state.position / state.duration * 100);
+      });
+
+      player.connect().then(success => {
+        if (success) {
+          console.log('Connected to Spotify player!');
+          setPlayer(player);
+        }
+      });
+    };
+  };
+
+  const transferPlayback = (deviceId, token) => {
+    fetch('https://api.spotify.com/v1/me/player', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        device_ids: [deviceId],
+        play: false
+      })
+    });
+  };
+
   const handleLogin = () => {
-    const state = Math.random().toString(36).substring(2);
-    localStorage.setItem('spotify_auth_state', state);
-    const authUrl = 'https://accounts.spotify.com/authorize' +
-      '?response_type=token' +
-      '&client_id=' + encodeURIComponent(CLIENT_ID) +
-      '&scope=' + encodeURIComponent(SCOPES) +
-      '&redirect_uri=' + encodeURIComponent(REDIRECT_URI) +
-      '&state=' + encodeURIComponent(state);
-    window.location = authUrl; // user is redirected to Spotify login:contentReference[oaicite:16]{index=16}
+    window.location.href = AUTH_URL;
   };
 
-  // Load the Spotify Web Playback SDK script when we have a token
-  useEffect(() => {
-    if (token && !player) {
-      // Insert Spotify SDK script tag into DOM:contentReference[oaicite:17]{index=17}
-      const script = document.createElement("script");
-      script.src = "https://sdk.scdn.co/spotify-player.js";
-      script.async = true;
-      document.body.appendChild(script);
-
-      // Initialize Spotify Player when SDK is ready:contentReference[oaicite:18]{index=18}
-      window.onSpotifyWebPlaybackSDKReady = () => {
-        const sp = new window.Spotify.Player({
-          name: 'React Spotify Player',
-          getOAuthToken: cb => { cb(token); },
-          volume: 0.5
-        });
-        setPlayer(sp);
-
-        // Error handling (optional)
-        sp.addListener('initialization_error', ({ message }) => console.error(message));
-        sp.addListener('authentication_error', ({ message }) => console.error(message));
-        sp.addListener('account_error', ({ message }) => console.error(message));
-        sp.addListener('playback_error', ({ message }) => console.error(message));
-
-        // Update player state (track changes, position, etc.):contentReference[oaicite:19]{index=19}
-        sp.addListener('player_state_changed', state => {
-          if (!state) return;
-          const current = state.track_window.current_track;
-          setTrack({
-            name: current.name,
-            artist: current.artists.map(a => a.name).join(', '),
-            albumArt: current.album.images[0]?.url || ''
-          });
-          setIsPaused(state.paused);
-          setPosition(state.position);
-          setDuration(state.duration);
-        });
-
-        // On Ready: get device_id and start playback:contentReference[oaicite:20]{index=20}
-        sp.addListener('ready', ({ device_id }) => {
-          console.log('Ready with Device ID', device_id);
-          setDeviceId(device_id);
-          // Transfer playback to this device (Web Playback SDK requires this):contentReference[oaicite:21]{index=21}
-          fetch('https://api.spotify.com/v1/me/player', {
-            method: 'PUT',
-            headers: { Authorization: `Bearer ${token}` },
-            body: JSON.stringify({ device_ids: [device_id], play: false })
-          });
-          // Start playing the playlist on the new device:contentReference[oaicite:22]{index=22}
-          fetch(`https://api.spotify.com/v1/me/player/play?device_id=${device_id}`, {
-            method: 'PUT',
-            headers: { 
-              Authorization: `Bearer ${token}`, 
-              'Content-Type': 'application/json' 
-            },
-            body: JSON.stringify({ context_uri: PLAYLIST_URI })
-          });
-          // Enable shuffle mode on this device:contentReference[oaicite:23]{index=23}
-          fetch(`https://api.spotify.com/v1/me/player/shuffle?state=true&device_id=${device_id}`, {
-            method: 'PUT',
-            headers: { Authorization: `Bearer ${token}` }
-          });
-        });
-
-        // Device went offline (optional handler)
-        sp.addListener('not_ready', ({ device_id }) => {
-          console.log('Device ID has gone offline', device_id);
-        });
-
-        // Connect to the player!
-        sp.connect();
-      };
-    }
-  }, [token, player]);
-
-  // Update the playback position every second if playing
-  useEffect(() => {
-    let interval = null;
-    if (!isPaused && player) {
-      interval = setInterval(() => {
-        setPosition(prev => {
-          const next = prev + 1000;
-          return next < duration ? next : duration;
-        });
-      }, 1000);
-    } else {
-      clearInterval(interval);
-    }
-    return () => clearInterval(interval);
-  }, [isPaused, player, duration]);
-
-  // Control handlers
-  const handlePlayPause = () => {
-    if (!player) return;
-    if (isPaused) {
-      player.resume();
-    } else {
-      player.pause();
-    }
-    setIsPaused(!isPaused);
-  };
-  const handlePrev = () => player && player.previousTrack();
-  const handleNext = () => player && player.nextTrack();
-  const handleSeek = (e) => {
-    const pos = Number(e.target.value);
+  const handleLogout = () => {
+    window.localStorage.removeItem('spotify_token');
+    setIsLoggedIn(false);
     if (player) {
-      player.seek(pos);
-      setPosition(pos);
+      player.disconnect();
     }
   };
 
-  // Helper to format milliseconds into mm:ss
-  const formatTime = (ms) => {
-    const mins = Math.floor(ms / 60000);
-    const secs = Math.floor((ms % 60000) / 1000).toString().padStart(2, '0');
-    return `${mins}:${secs}`;
+  const togglePlay = () => {
+    if (isPlaying) {
+      player.pause();
+    } else {
+      player.resume();
+    }
   };
 
-  // If not authenticated yet, show login button
-  if (!token) {
-    return <button onClick={handleLogin}>Connect to Spotify</button>;
+  const skipNext = () => {
+    player.nextTrack();
+  };
+
+  const skipPrevious = () => {
+    player.previousTrack();
+  };
+
+  const handleVolumeChange = (e) => {
+    const newVolume = e.target.value;
+    setVolume(newVolume);
+    player.setVolume(newVolume / 100);
+  };
+
+  const seekTrack = (e) => {
+    const newProgress = e.target.value;
+    setProgress(newProgress);
+    if (currentTrack) {
+      player.seek((newProgress / 100) * currentTrack.duration_ms);
+    }
+  };
+
+  const formatTime = (ms) => {
+    const seconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+  };
+
+  if (!isLoggedIn) {
+    return (
+      <div className="spotify-login">
+        <h2>Spotify Player</h2>
+        <button onClick={handleLogin}>Login with Spotify</button>
+      </div>
+    );
   }
 
-  // Main player UI
   return (
-    <div style={{ maxWidth: 400, margin: 'auto', textAlign: 'center' }}>
-      <div>
-        {track.albumArt && (
-          <img src={track.albumArt} alt="Album Art" width="300" />
-        )}
-        <h3>{track.name}</h3>
-        <p>{track.artist}</p>
+    <div className="spotify-player">
+      <div className="player-header">
+        <h2>Now Playing</h2>
+        <button onClick={handleLogout}>Logout</button>
       </div>
-      <div>
-        <button onClick={handlePrev}>Prev</button>
-        <button onClick={handlePlayPause}>{isPaused ? 'Play' : 'Pause'}</button>
-        <button onClick={handleNext}>Next</button>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        <span>{formatTime(position)}</span>
-        <input
-          type="range"
-          min="0"
-          max={duration}
-          value={position}
-          onChange={handleSeek}
-          style={{ flex: 1, margin: '0 10px' }}
-        />
-        <span>{formatTime(duration)}</span>
+      
+      {currentTrack && (
+        <div className="track-info">
+          <img 
+            src={currentTrack.album.images[0].url} 
+            alt={currentTrack.name} 
+            className="album-art"
+          />
+          <div className="track-details">
+            <h3>{currentTrack.name}</h3>
+            <p>{currentTrack.artists.map(artist => artist.name).join(', ')}</p>
+            <p>{currentTrack.album.name}</p>
+          </div>
+        </div>
+      )}
+
+      <div className="player-controls">
+        <div className="progress-container">
+          <input 
+            type="range" 
+            min="0" 
+            max="100" 
+            value={progress} 
+            onChange={seekTrack}
+            className="progress-bar"
+          />
+          <div className="time-display">
+            {currentTrack && (
+              <>
+                <span>{formatTime((progress / 100) * currentTrack.duration_ms)}</span>
+                <span>{formatTime(currentTrack.duration_ms)}</span>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="control-buttons">
+          <button onClick={skipPrevious} className="control-button">
+            <i className="prev-icon">⏮</i>
+          </button>
+          <button onClick={togglePlay} className="play-button">
+            {isPlaying ? '⏸' : '▶'}
+          </button>
+          <button onClick={skipNext} className="control-button">
+            <i className="next-icon">⏭</i>
+          </button>
+        </div>
+
+        <div className="volume-control">
+          <span>🔈</span>
+          <input 
+            type="range" 
+            min="0" 
+            max="100" 
+            value={volume} 
+            onChange={handleVolumeChange}
+            className="volume-slider"
+          />
+        </div>
       </div>
     </div>
   );
