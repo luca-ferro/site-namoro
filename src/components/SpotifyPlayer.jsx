@@ -63,6 +63,8 @@ const SpotifyPlayer = () => {
     window.location.href = AUTH_URL;
   };
 
+  const [error, setError] = useState(null);
+
   const initializePlayer = (token) => {
     const script = document.createElement('script');
     script.src = 'https://sdk.scdn.co/spotify-player.js';
