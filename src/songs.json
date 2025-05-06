@@ -1,0 +1,68 @@
+[
+    {
+      "url": "/src/assets/Music/EsperandoNaJanela.mp3",
+      "title": "Esperando na Janela",
+      "image": "https://i.scdn.co/image/ab67616d0000b2735e6da393bce907b5ff4533dd",
+      "singer": "Cogumelo Plutão"
+    },
+    {
+        "url": "/src/assets/Music/ExageradoCazuza.mp3",
+        "title": "Exagerado",
+        "image": "https://upload.wikimedia.org/wikipedia/pt/f/fd/Exagerado.jpg",
+        "singer": "Cazuza"
+    },
+    {
+        "url": "/src/assets/Music/dialugarehora.mp3",
+        "title": "Dia, Lugar e Hora",
+        "image": "https://upload.wikimedia.org/wikipedia/pt/4/46/Capa_de_1977.jpg",
+        "singer": "Luan Santana"
+    },
+    {
+        "url": "/src/assets/Music/chuvadearroz.mp3",
+        "title": "Chuva de Arroz - Ao Vivo",
+        "image": "https://upload.wikimedia.org/wikipedia/pt/d/d6/Capa_Acustico_Luan_Santana.jpg",
+        "singer": "Luan Santana"
+    },
+    {
+        "url": "/src/assets/Music/lavieenrose.mp3",
+        "title": "La Vie En Rose",
+        "image": "https://cdn-images.dzcdn.net/images/cover/bc66e754353e0d3d379555f8adedec03/0x1900-000000-80-0-0.jpg",
+        "singer": "Emily Watts"
+    },
+    {
+        "url": "/src/assets/Music/sorriso.mp3",
+        "title": "Sorriso Resplandescente (Dragon Ball GT Theme)",
+        "image": "https://cdn-images.dzcdn.net/images/cover/857f6de5848b98bdc952539be0009a18/1900x1900-000000-80-0-0.jpg",
+        "singer": "NOSSO TOM Musical"
+    },
+    {
+        "url": "/src/assets/Music/ADMV.mp3",
+        "title": "ADMV",
+        "image": "https://upload.wikimedia.org/wikipedia/pt/3/32/Maluma_-_Papi_Juancho.png",
+        "singer": "Maluma"
+    },
+    {
+        "url": "/src/assets/Music/modoabsurdo.mp3",
+        "title": "Modo Absurdo",
+        "image": "https://i1.sndcdn.com/artworks-jTNUBPA64Anq-0-t500x500.jpg",
+        "singer": "Ferrugem"
+    },
+    {
+        "url": "/src/assets/Music/porvoce.mp3",
+        "title": "Por Você",
+        "image": "https://i.scdn.co/image/ab67616d0000b2739a56fb36ed2aef91c45b0d25",
+        "singer": "Frejat"
+    },
+    {
+        "url": "/src/assets/Music/aquelaali.mp3",
+        "title": "Aquela Ali É Minha",
+        "image": "https://i.scdn.co/image/ab67616d0000b27337ab8bcb230ee8d2788ecdaf",
+        "singer": "Breno & Caio Cesar"
+    },
+    {
+        "url": "/src/assets/Music/cordemarte.mp3",
+        "title": "Cor De Marte",
+        "image": "https://i.scdn.co/image/ab67616d0000b27389de16b800bd88301aa9120f",
+        "singer": "ANAVITÓRIA"
+    }
+]

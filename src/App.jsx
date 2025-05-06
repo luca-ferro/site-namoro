@@ -9,8 +9,7 @@ import 'slick-carousel/slick/slick-theme.css';
 
 import AddNewPhoto from './popups/AddNewPhoto';
 import Post from './components/Post';
-
-import SpotifyPlayer from './components/SpotifyPlayer';
+import MusicPlayer from './components/MusicPlayer';
 
 import { ThreeDots } from 'react-loader-spinner';
 
@@ -18,6 +17,8 @@ import InstaLogo from "./assets/bxl-instagram.svg"
 
 import './App.css'
 import AddNewPost from './popups/AddNewPost';
+
+import songs from "./songs.json"
 
 function App() {
   const [timeElapsed, setTimeElapsed] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -193,6 +194,10 @@ function App() {
           >
             + Adicionar nova história
           </button>
+          <MusicPlayer 
+            songs={songs}
+            loading={loading}
+          />
           <footer>
             <div className='footer-notes'>
               <a href="https://www.instagram.com/detimermane_/" style={{ color: "white" }}>

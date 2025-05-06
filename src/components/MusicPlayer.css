@@ -1,0 +1,60 @@
+.music-player {
+    color: #3a1736;
+    background-color: #FFEAEA;
+    padding: 10px 20px;
+    margin: 0 20px;
+    margin-top: 20px;
+    border-radius: 15px;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+
+.top-music {
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    gap: 15px;
+    
+    img {
+        width: 100px;
+        height: 100px;
+        border-radius: 10px;
+        border: #3a173683 2px solid;
+    }
+}
+
+.song-singer {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    justify-content: center;
+    h3 {
+        margin: 0;
+        font-size: 30px;
+        text-align: left;
+        line-height: 1.0;
+    }
+    h4 {
+        margin: 0;
+        font-weight: normal;
+    }
+}
+
+.music-button {
+    background: none;
+	color: inherit;
+	border: none;
+	padding: 0;
+	font: inherit;
+	cursor: pointer;
+	outline: inherit;
+
+    font-size: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: -10px 0;
+    img {
+        height: 100px;
+        filter: invert(11%) sepia(23%) saturate(3180%) hue-rotate(269deg) brightness(85%) contrast(94%);
+    }
+}
